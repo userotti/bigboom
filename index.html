@@ -1,0 +1,318 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>hello phaser!</title>
+        <script src="phaser.min.js"></script>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+
+    window.onload = function() {
+
+    var game = new Phaser.Game(500, 500, Phaser.AUTO, 'bigboom', { preload: preload, create: create, update: update, render: render });
+
+    function preload() {
+
+            game.load.image('bullet', 'img/bullet.png');
+            game.load.image('pod', 'img/enemybody.png');
+
+            game.load.image('flame', 'img/flames.png');
+                
+            
+            game.load.image('trokbody', 'img/trokbody.png');
+            game.load.image('bigwheel', 'img/bigwheel.png');
+            game.load.image('smallwheel', 'img/smallwheel.png');
+
+            game.load.image('turretbox', 'img/turretbox.png');
+            game.load.image('turret', 'img/turret.png');
+            
+            game.load.spritesheet('kaboom', 'img/explode.png', 128, 128);
+            game.load.image('mountains', 'img/mountains.png');
+            game.load.image('sky', 'img/sky.png');
+
+            game.load.audio('beat', ['sounds/track1.mp3']);  
+            game.load.audio('shoot', ['sounds/shoot.mp3']); 
+            game.load.audio('boom', ['sounds/explode.mp3']); 
+    
+
+    }
+
+    var player;
+    var pods;
+    var bullets;
+    var bulletTime = 0;
+    var cursors;
+    var fireButton;
+    var explosions;
+    var starfield;
+    var score = 0;
+    var scoreString = '';
+    var scoreText;
+    var lives;
+    var enemyBullet;
+    var firingTimer = 0;
+    var stateText;
+    var livingPods = [];
+
+    var pod_create_timer = 0;
+
+
+    
+    function create() {
+
+   
+    music = game.add.audio('beat',1,true);
+    music.volume = music.volume*0.8;
+
+    shoot = game.add.audio('shoot');
+
+    shoot.volume = shoot.volume*0.6;
+
+    boom = game.add.audio('boom');
+
+    boom.volume = boom.volume*1;
+    
+
+    music.play('',0,1,true);  
+
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    //  The scrolling starfield background
+    sky = game.add.sprite(0, 0,'sky');
+    mountains = game.add.tileSprite(0, 0, 500, 500, 'mountains');
+
+
+    //  Our bullet group
+    bullets = game.add.group();
+    bullets.enableBody = true;
+    bullets.physicsBodyType = Phaser.Physics.ARCADE;
+    bullets.createMultiple(30, 'bullet');
+    bullets.setAll('anchor.x', 0.5);
+    bullets.setAll('anchor.y', 0.5);
+    bullets.setAll('outOfBoundsKill', true);
+    bullets.setAll('checkWorldBounds', true);
+
+   
+
+    //  The hero!
+    trokbody = game.add.sprite(220, 420, 'trokbody');
+    trokbody.anchor.setTo(0.5, 0.5);
+
+    bigwheel = game.add.sprite(260, 445, 'bigwheel');
+    bigwheel.anchor.setTo(0.5, 0.5);
+
+    smallwheel = game.add.sprite(180, 450, 'smallwheel');
+    smallwheel.anchor.setTo(0.5, 0.5);
+
+
+     turret = game.add.sprite(185, 415, 'turret');
+    turret.anchor.setTo(0.5, 0.9);
+     game.physics.enable(turret, Phaser.Physics.ARCADE);
+
+
+    turretbox = game.add.sprite(185, 415, 'turretbox');
+    turretbox.anchor.setTo(0.5, 0.5);
+
+   
+
+    
+
+    //  The baddies!
+    pods = game.add.group();
+    pods.enableBody = true;
+    pods.physicsBodyType = Phaser.Physics.ARCADE;
+
+    createPod();
+
+    //  The score
+    scoreString = 'Score : ';
+    scoreText = game.add.text(10, 10, scoreString + score, { font: '34px Arial', fill: '#fff' });
+
+    //  Lives
+    
+    //  Text
+    stateText = game.add.text(game.world.centerX,game.world.centerY,' ', { font: '84px Arial', fill: '#fff' });
+    stateText.anchor.setTo(0.5, 0.5);
+    stateText.visible = false;
+
+    
+    //  An explosion pool
+    explosions = game.add.group();
+    explosions.createMultiple(30, 'kaboom');
+    explosions.forEach(setupPod, this);
+
+    //  And some controls to play the game with
+    cursors = game.input.keyboard.createCursorKeys();
+    fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    
+    }
+
+
+    function createPod () {
+
+
+        var pod = pods.create(-15, (Math.random()*150)+100, 'pod');
+                
+        pod.anchor.setTo(0.5, 0.5);
+           // pod.animations.add('fly', [ 0, 1, 2, 3 ], 20, true);
+           // pod.play('fly');
+        pod.body.moves = true;
+            
+        pod.body.velocity.x = 100;
+
+        
+        //  All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
+        //var tween = game.add.tween(pod).to( { x: 500 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
+
+        //  When the tween loops it calls descend
+            //tween.onLoop.add(descend, this);
+    }
+
+    function setupPod (pod) {
+
+    pod.anchor.x = 0.5;
+    pod.anchor.y = 0.5;
+    pod.animations.add('kaboom');
+
+    }
+
+
+    function update() {
+
+    //  Scroll the background
+        mountains.tilePosition.x += -2;
+        bigwheel.angle += 5;
+        smallwheel.angle += 8;
+        pod_create_timer += 1;
+
+        //  Reset the player, then check for movement keys
+
+
+
+
+        if (pod_create_timer % 100 == 0){
+
+            createPod();
+
+
+        }
+
+        if (cursors.left.isDown)
+        {   
+
+            turret.body.angle += -5;
+
+            turret.angle += -5;
+           
+        }
+        else if (cursors.right.isDown)
+        {
+            turret.body.angle += 5;
+            turret.angle += 5;
+        }
+
+        //  Firing?
+        if (fireButton.isDown)
+        {
+            fireBullet();
+
+            
+        }
+
+
+        if (game.time.now > firingTimer)
+        {
+            //enemyFires();
+        }
+
+        //  Run collision
+        game.physics.arcade.overlap(bullets, pods, collisionHandler, null, this);
+       
+    
+
+    }
+
+
+    function render() {
+
+    // for (var i = 0; i < aliens.length; i++)
+    // {
+    //     game.debug.body(aliens.children[i]);
+    // }
+
+    }
+
+    function collisionHandler (bullet, pod) {
+
+        //  When a bullet hits an alien we kill them both
+        bullet.kill();
+        pod.kill();
+
+        //  Increase the score
+        score += 20;
+        scoreText.text = scoreString + score;
+
+        //  And create an explosion :)
+        var explosion = explosions.getFirstExists(false);
+        explosion.reset(pod.body.x, pod.body.y);
+        explosion.play('kaboom', 30, false, true);
+        boom.play();
+
+       if (pods.countLiving() == 0)
+        {
+
+          /*  score += 1000;
+            scoreText.text = scoreString + score;
+
+            
+            stateText.text = " You Won, \n Click to restart";
+            stateText.visible = true;
+
+            //the "click to restart" handler
+            game.input.onTap.addOnce(restart,this);*/
+        }
+
+    }   
+
+    function fireBullet () {
+
+    //  To avoid them being allowed to fire too fast we set a time limit
+        if (game.time.now > bulletTime)
+        {
+            //  Grab the first bullet we can from the pool
+            bullet = bullets.getFirstExists(false);
+
+            if (bullet)
+            {
+                //  And fire it
+                bullet.reset(turret.x, turret.y);
+
+                bullet.body.velocity.x = Math.cos(((turret.angle-90)/180) * Math.PI)  * 400;
+                bullet.body.velocity.y = Math.sin(((turret.angle-90)/180) * Math.PI) * 400;
+                shoot.play();
+
+                bulletTime = game.time.now + 200;
+            }
+        }
+
+    }
+
+    function resetBullet (bullet) {
+
+    //  Called if the bullet goes out of the screen
+    bullet.kill();
+
+    }
+
+
+
+    };
+
+    </script>
+
+    <p style="font-size: 20px;"> keyboard <strong> arrows </strong> to aim, <strong> space </strong> to shoot </p>
+
+    </body>
+</html>
