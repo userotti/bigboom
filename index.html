@@ -19,23 +19,23 @@
             game.load.image('pod', 'img/enemybody.png');
 
             game.load.image('flame', 'img/flames.png');
-                
-            
+
+
             game.load.image('trokbody', 'img/trokbody.png');
             game.load.image('bigwheel', 'img/bigwheel.png');
             game.load.image('smallwheel', 'img/smallwheel.png');
 
             game.load.image('turretbox', 'img/turretbox.png');
             game.load.image('turret', 'img/turret.png');
-            
+
             game.load.spritesheet('kaboom', 'img/explode.png', 128, 128);
             game.load.image('mountains', 'img/mountains.png');
             game.load.image('sky', 'img/sky.png');
 
-            game.load.audio('beat', ['sounds/track1.mp3']);  
-            game.load.audio('shoot', ['sounds/shoot.mp3']); 
-            game.load.audio('boom', ['sounds/explode.mp3']); 
-    
+            game.load.audio('beat', ['sounds/track1.mp3']);
+            game.load.audio('shoot', ['sounds/shoot.mp3']);
+            game.load.audio('boom', ['sounds/explode.mp3']);
+
 
     }
 
@@ -59,10 +59,10 @@
     var pod_create_timer = 0;
 
 
-    
+
     function create() {
 
-   
+
     music = game.add.audio('beat',1,true);
     music.volume = music.volume*0.8;
 
@@ -73,9 +73,9 @@
     boom = game.add.audio('boom');
 
     boom.volume = boom.volume*1;
-    
 
-    music.play('',0,1,true);  
+
+    music.play('',0,1,true);
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -94,7 +94,7 @@
     bullets.setAll('outOfBoundsKill', true);
     bullets.setAll('checkWorldBounds', true);
 
-   
+
 
     //  The hero!
     trokbody = game.add.sprite(220, 420, 'trokbody');
@@ -115,9 +115,9 @@
     turretbox = game.add.sprite(185, 415, 'turretbox');
     turretbox.anchor.setTo(0.5, 0.5);
 
-   
 
-    
+
+
 
     //  The baddies!
     pods = game.add.group();
@@ -131,13 +131,13 @@
     scoreText = game.add.text(10, 10, scoreString + score, { font: '34px Arial', fill: '#fff' });
 
     //  Lives
-    
+
     //  Text
     stateText = game.add.text(game.world.centerX,game.world.centerY,' ', { font: '84px Arial', fill: '#fff' });
     stateText.anchor.setTo(0.5, 0.5);
     stateText.visible = false;
 
-    
+
     //  An explosion pool
     explosions = game.add.group();
     explosions.createMultiple(30, 'kaboom');
@@ -146,7 +146,7 @@
     //  And some controls to play the game with
     cursors = game.input.keyboard.createCursorKeys();
     fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    
+
     }
 
 
@@ -154,15 +154,15 @@
 
 
         var pod = pods.create(-15, (Math.random()*150)+100, 'pod');
-                
+
         pod.anchor.setTo(0.5, 0.5);
            // pod.animations.add('fly', [ 0, 1, 2, 3 ], 20, true);
            // pod.play('fly');
         pod.body.moves = true;
-            
+
         pod.body.velocity.x = 100;
 
-        
+
         //  All this does is basically start the invaders moving. Notice we're moving the Group they belong to, rather than the invaders directly.
         //var tween = game.add.tween(pod).to( { x: 500 }, 2000, Phaser.Easing.Linear.None, true, 0, 1000, true);
 
@@ -184,7 +184,7 @@
     //  Scroll the background
         mountains.tilePosition.x += -2;
         bigwheel.angle += 5;
-        smallwheel.angle += 8;
+        smallwheel.angle += 18;
         pod_create_timer += 1;
 
         //  Reset the player, then check for movement keys
@@ -200,12 +200,12 @@
         }
 
         if (cursors.left.isDown)
-        {   
+        {
 
             turret.body.angle += -5;
 
             turret.angle += -5;
-           
+
         }
         else if (cursors.right.isDown)
         {
@@ -218,7 +218,7 @@
         {
             fireBullet();
 
-            
+
         }
 
 
@@ -229,8 +229,8 @@
 
         //  Run collision
         game.physics.arcade.overlap(bullets, pods, collisionHandler, null, this);
-       
-    
+
+
 
     }
 
@@ -266,7 +266,7 @@
           /*  score += 1000;
             scoreText.text = scoreString + score;
 
-            
+
             stateText.text = " You Won, \n Click to restart";
             stateText.visible = true;
 
@@ -274,7 +274,7 @@
             game.input.onTap.addOnce(restart,this);*/
         }
 
-    }   
+    }
 
     function fireBullet () {
 
